@@ -1,0 +1,8 @@
+# leading `/' means at top level only
+/build/
+/dist
+
+# no leading `/' means anywhere
+*.pyc
+.ropeproject
+semantic.cache
