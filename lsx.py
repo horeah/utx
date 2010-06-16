@@ -15,7 +15,7 @@ def main():
             pattern = sys.argv[1]
     print 'Listing "' + pattern + '" based at "' + directory + '":'
 
-    results = globx.globxy(directory, pattern)
+    results = globx.globx(directory, pattern)
     for elem in results:
         print elem
 
