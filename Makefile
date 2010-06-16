@@ -14,7 +14,7 @@ ZIP = zip
 
 SRC = globx.py lsx.py
 
-dist_single: clean $(SRC)
+dist_single: $(SRC)
 	python setup.py py2exe
 
 .PHONY: clean
