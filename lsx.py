@@ -26,10 +26,22 @@ def main():
         sep_idx = args[0].find('\\\\')
         if sep_idx >= 0:
             directory = args[0][:sep_idx]
+            if len(directory) == 2 and directory[1] == ':':
+                directory += '\\'
             pattern = args[0][sep_idx + 2:]
         else:
-            directory = '.'
-            pattern = args[0]
+            # No base directory defined -- infer based on the type of path
+            if os.path.isabs(args[0]):
+                star_idx = args[0].find('*')
+                if star_idx < 0:
+                    directory = args[0]
+                    pattern = '**\*'
+                else:
+                    directory = args[0][:star_idx]
+                    pattern = args[0][star_idx:]
+            else:
+                directory = '.'
+                pattern = args[0]
 
     if options.verbose:
         print '>> Listing "' + pattern + '" based at "' + directory + '":'
