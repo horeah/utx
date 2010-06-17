@@ -41,7 +41,7 @@ def format_size(bytes, pretty = False):
 def format_time(seconds, pretty = False):
     if pretty:
         if time.localtime(seconds).tm_year == time.localtime().tm_year:
-            format = '%b %d %I:%M'
+            format = '%b %d %H:%M'
         else:
             format = '%Y %b %d'
         return time.strftime(format, time.localtime(seconds))
