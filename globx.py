@@ -18,12 +18,18 @@ def globx(directory, pattern):
             yield g
     else:
         for f in special_entries + files:
-            if fnmatch.fnmatch(f, elem):
+            if matches(f, elem):
                 if rest == '' and not f in special_entries:
                     yield f
                 if os.path.isdir(directory + '\\' + f):
                     for g in globx(directory + '\\' + f, rest):
                         yield f + '\\' + g
+
+def matches(name, pattern):
+    if name in special_entries:
+        return name == pattern
+    else:
+        return fnmatch.fnmatch(name, pattern)
 
 def format_size(bytes, pretty = False):
     if pretty:
