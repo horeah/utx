@@ -1,9 +1,23 @@
+#
+# Equivalent of a friendlier, recursive version of ls
+#
+# List (recursively) files that match a given pattern; listed names can start at
+# a specified base directory.
+#
+# Author: Horea Haitonic
+#
+
 import sys, globx, optparse, os
 
 
 def main():
     # Define and parse command line otions 
-    parser = optparse.OptionParser(usage = 'lsx [options] <files>',
+    parser = optparse.OptionParser(usage = 'lsx [options] <pattern>',
+                                   description = 
+"""List (recursively) files that match a given pattern.
+You can use the well-known '*' and '?' as expected, '**' to recursively
+match subdirectories and a '\\\\' (double backslash) to mark the base
+directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
                                    version = '10.1')
     parser.add_option('-l', '--long', 
                       action = 'store_true', dest = 'long_format', 
@@ -12,19 +26,22 @@ def main():
     parser.add_option('-p', '--pretty',
                       action = 'store_true', dest = 'pretty_print',
                       default = False,
-                      help = 'show human-readable file sizes')
+                      help = 'show details in human-readable format')
     parser.add_option('-v', '--verbose',
                       action = 'store_true', dest = 'verbose',
                       default = False,
                       help = 'describe the operations being performed')
     (options, args) = parser.parse_args()
 
+    # Interpret the <files> argument
     if len(args) == 0:
+        # No pattern given, use the implicit '.\\**\*'
         directory = '.'
         pattern = '**\*'
     elif len(args) == 1:
         sep_idx = args[0].find('\\\\')
         if sep_idx >= 0:
+            # Base directory provided via marker
             directory = args[0][:sep_idx]
             if len(directory) == 2 and directory[1] == ':':
                 directory += '\\'
@@ -46,12 +63,11 @@ def main():
     if options.verbose:
         print '>> Listing "' + pattern + '" based at "' + directory + '":'
 
-    col_width = 12
-    col_spacing = 4
+    col_width = 12      # Size of a display column
+    col_spacing = 4     # Spacing b/w columns
 
     results = globx.globx(directory, pattern)
     for elem in results:
-        line = elem
         if options.long_format:
             # Size
             try:
@@ -70,7 +86,9 @@ def main():
             sys.stdout.write(' ' * (col_width - len(mtime_str)))
             sys.stdout.write(mtime_str)
             sys.stdout.write(' ' * col_spacing)
-        print line
+        print elem
 
+
+# Entry point
 if __name__ == '__main__':
     main()
