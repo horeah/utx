@@ -8,6 +8,7 @@
 #
 
 import sys, globx, optparse, os
+from sys import stdout
 
 
 def main():
@@ -38,28 +39,9 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
         # No pattern given, use the implicit '.\\**\*'
         directory = '.'
         pattern = '**\*'
-    elif len(args) == 1:
-        sep_idx = args[0].find('\\\\')
-        if sep_idx >= 0:
-            # Base directory provided via marker
-            directory = args[0][:sep_idx]
-            if len(directory) == 2 and directory[1] == ':':
-                directory += '\\'
-            pattern = args[0][sep_idx + 2:]
-        else:
-            # No base directory defined -- infer based on the type of path
-            if os.path.isabs(args[0]):
-                star_idx = args[0].find('*')
-                if star_idx < 0:
-                    directory = args[0]
-                    pattern = '**\*'
-                else:
-                    directory = args[0][:star_idx]
-                    pattern = args[0][star_idx:]
-            else:
-                directory = '.'
-                pattern = args[0]
-
+    else:
+        (directory, pattern) = globx.split_target(args[0])
+    
     if options.verbose:
         print '>> Listing "' + pattern + '" based at "' + directory + '":'
 
@@ -74,18 +56,18 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
                 size_str = globx.format_size(os.path.getsize(directory + '\\' + elem), options.pretty_print)
             except os.error:
                 size_str = '??'
-            sys.stdout.write(' ' * (col_width - len(size_str)))
-            sys.stdout.write(size_str)
-            sys.stdout.write(' ' * col_spacing)
+            stdout.write(' ' * (col_width - len(size_str)))
+            stdout.write(size_str)
+            stdout.write(' ' * col_spacing)
             
             # Modification time
             try:
                 mtime_str = globx.format_time(os.path.getmtime(directory + '\\' + elem), options.pretty_print)
             except os.error:
                 mtime_str = '??'
-            sys.stdout.write(' ' * (col_width - len(mtime_str)))
-            sys.stdout.write(mtime_str)
-            sys.stdout.write(' ' * col_spacing)
+            stdout.write(' ' * (col_width - len(mtime_str)))
+            stdout.write(mtime_str)
+            stdout.write(' ' * col_spacing)
         print elem
 
 

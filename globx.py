@@ -55,3 +55,25 @@ def format_time(seconds, pretty = False):
         return str(int(seconds))
 
 
+def split_target(arg):
+    sep_idx = arg.find('\\\\')
+    if sep_idx >= 0:
+        # Base directory provided via marker
+        directory = arg[:sep_idx]
+        if len(directory) == 2 and directory[1] == ':':
+            directory += '\\'
+        pattern = arg[sep_idx + 2:]
+    else:
+        # No base directory defined -- infer based on the type of path
+        if os.path.isabs(arg):
+            star_idx = arg.find('*')
+            if star_idx < 0:
+                directory = arg
+                pattern = '**\*'
+            else:
+                directory = arg[:star_idx]
+                pattern = arg[star_idx:]
+        else:
+            directory = '.'
+            pattern = arg
+    return (directory, pattern)
