@@ -14,15 +14,24 @@ def main():
     # Define and parse command line otions 
     parser = optparse.OptionParser(usage = 'rmx [options] <files>',
                                    version = '10.1')
-    parser.add_option('-i', '--interactive', 
-                      action = 'store_true', dest = 'interactive', 
+    parser.add_option('-i', '--interactive-cautious', 
+                      action = 'store_true', dest = 'interactive_cautious', 
                       default = False,
-                      help = 'confirm deletion for each file')
+                      help = 'cautiously (y/N) confirm deletion for each file')
+    parser.add_option('-I', '--interactive-brave', 
+                      action = 'store_true', dest = 'interactive_brave', 
+                      default = False,
+                      help = 'bravely (Y/n) confirm deletion for each file')
     parser.add_option('-v', '--verbose',
                       action = 'store_true', dest = 'verbose',
                       default = False,
                       help = 'describe the operations being performed')
     (options, args) = parser.parse_args()
+
+    # Arguments sanity check
+    if options.interactive_brave and options.interactive_cautious:
+        parser.error("options -i and -I are mutually exclusive")
+        sys.exit(1)
 
     # Interpret the <files> argument
     if len(args) == 0:
@@ -31,8 +40,15 @@ def main():
     else:
         (directory, pattern) = globx.split_target(args[0])
 
+
+    # Prepare the interactive mode (if specified)
     if pattern.find('**'):
-        options.interactive = True
+        options.interactive_cautious = True
+    if options.interactive_brave:
+        default_input = 'Y'
+    elif options.interactive_cautious:
+        default_input = 'N'
+    options.interactive = options.interactive_cautious or options.interactive_brave
 
     if options.verbose:
         print '>> Deleting "' + pattern + '" based at "' + directory + '":'
@@ -44,10 +60,16 @@ def main():
         if options.interactive:
             confirm = confirm_initial
             while confirm == None :
-                stdout.write('Delete "' + elem + '"? y/N/a(ll)/q(uit) ')
+                stdout.write('Delete "' + elem + '"? [')
+                if options.interactive_brave:
+                    stdout.write('Y/n')
+                else:   # options.interactive_cautious
+                    stdout.write('y/N')
+                stdout.write('/a(ll)/q(uit)]: ')
+
                 read = stdin.readline()
                 if len(read) == 1:
-                    confirm = False
+                    confirm = options.interactive_brave
                 elif len(read) == 2:
                     if read[0].upper() == 'Y':
                         confirm = True
