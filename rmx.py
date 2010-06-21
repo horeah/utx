@@ -31,15 +31,12 @@ def main():
     # Arguments sanity check
     if options.interactive_brave and options.interactive_cautious:
         parser.error("options -i and -I are mutually exclusive")
-        sys.exit(1)
 
     # Interpret the <files> argument
     if len(args) == 0:
-        stderr.write('You must specify the files to delete')
-        sys.exit(1)
+        parser.error('You must specify the files to delete')
     else:
         (directory, pattern) = globx.split_target(args[0])
-
 
     # Prepare the interactive mode (if specified)
     if pattern.find('**'):
