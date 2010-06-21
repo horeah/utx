@@ -39,7 +39,7 @@ def main():
         (directory, pattern) = globx.split_target(args[0])
 
     # Prepare the interactive mode (if specified)
-    if pattern.find('**'):
+    if pattern.find('**') >= 0:
         options.interactive_cautious = True
     if options.interactive_brave:
         default_input = 'Y'
