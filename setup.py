@@ -22,3 +22,14 @@ setup(
     options = {'py2exe': { 'bundle_files' : 1 }},
     zipfile = None
 )
+
+setup(
+    name = 'cpx',
+    console = [
+        {
+            'script': 'cpx.py',
+        }
+    ],
+    options = {'py2exe': { 'bundle_files' : 1 }},
+    zipfile = None
+)
