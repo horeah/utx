@@ -15,11 +15,11 @@ def main():
     # Define and parse command line otions 
     parser = optparse.OptionParser(usage = 'lsx [options] <pattern>',
                                    description = 
-"""List (recursively) files that match a given pattern.
+"""List (recursively) files and directories that match a given pattern.
 You can use the well-known '*' and '?' as expected, '**' to recursively
 match subdirectories and a '\\\\' (double backslash) to mark the base
 directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
-                                   version = '10.1')
+                                   version = '0.1')
     parser.add_option('-l', '--long', 
                       action = 'store_true', dest = 'long_format', 
                       default = False,

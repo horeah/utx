@@ -13,7 +13,13 @@ from sys import stdout, stderr, stdin
 def main():
     # Define and parse command line otions 
     parser = optparse.OptionParser(usage = 'cpx [options] <files> <destination>',
-                                   version = '10.1')
+                                   description = 
+"""Copy (recursively) files and directories that match a given pattern.
+You can use the well-known '*' and '?' as expected, '**' to recursively
+match subdirectories and a '\\\\' (double backslash) to mark the base
+directory.""",
+
+                                   version = '0.1')
     parser.add_option('-i', '--interactive', 
                       action = 'store', type = 'int', dest = 'interactive', 
                       default = 0,
