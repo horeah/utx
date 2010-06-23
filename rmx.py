@@ -39,8 +39,6 @@ def main():
     if not options.interactive in range(0, 4):
         parser.error('The interactive level has to be in [0..3]')
 
-
-
     if options.verbose:
         print '>> Deleting "' + pattern + '" based at "' + directory + '":'
 
@@ -124,8 +122,8 @@ def remove_file(directory, name, verbose = False):
             os.rmdir(full_name)
         else:
             os.remove(full_name)
-            if verbose:
-                stdout.write('>> Deleted "' + name + '"\n')
+        if verbose:
+            stdout.write('>> Deleted "' + name + '"\n')
     except OSError, e:
         stderr.write('  ' + str(e) + '\n')
     
