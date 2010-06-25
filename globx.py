@@ -54,7 +54,6 @@ def format_time(seconds, pretty = False):
     else:
         return str(int(seconds))
 
-
 def split_target(arg):
     sep_idx = arg.find('\\\\')
     if sep_idx >= 0:
@@ -64,16 +63,21 @@ def split_target(arg):
             directory += '\\'
         pattern = arg[sep_idx + 2:]
     else:
-        # No base directory defined -- infer based on the type of path
-        if os.path.isabs(arg):
-            star_idx = arg.find('*')
-            if star_idx < 0:
-                directory = arg
-                pattern = '**\*'
-            else:
-                directory = arg[:star_idx]
-                pattern = arg[star_idx:]
+        # No base directory defined
+        wildcard_idx = arg.find('*')
+        if wildcard_idx < 0:
+            wildcard_idx = arg.find('?')
+        if wildcard_idx >= 0:
+            # Wildcard found
+            directory = os.path.dirname(arg[:wildcard_idx])
+            pattern = arg[wildcard_idx:]
         else:
-            directory = '.'
-            pattern = arg
+            # No wildcard found
+            (directory, pattern) = os.path.split(arg)
     return (directory, pattern)
+
+def is_recursive(pattern):
+    return pattern.find('**') >= 0
+
+def is_glob(pattern):
+    return pattern.find('*') >= 0 or pattern.find('?') >= 0

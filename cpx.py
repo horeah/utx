@@ -25,6 +25,10 @@ directory.""",
                       default = 0,
                       metavar = 'level',
                       help = 'interactively confirm operations (level=0..3)')
+    parser.add_option('-r', '--recursive',
+                      action = 'store_true', dest = 'recursive',
+                      default = False,
+                      help = 'also copy directories (default if ** is used)')
     parser.add_option('-v', '--verbose',
                       action = 'store_true', dest = 'verbose',
                       default = False,
@@ -39,6 +43,17 @@ directory.""",
     if not os.path.isdir(destination):
         stderr.write(sys.argv[0] + ': error: the <destination> has to be an existing directory\n')
         sys.exit(1)
+
+    # Automatically enable recursive mode if needed
+    if globx.is_recursive(pattern):
+        options.recursive = True
+        if options.verbose:
+            stdout.write('>> Auto enabled recursive copy due to a recursive glob\n')
+    elif not globx.is_glob(pattern) and os.path.isdir(directory + '\\' + pattern):
+        options.recursive = True
+        if options.verbose:
+            stdout.write('>> Auto enabled recursive copy since the source is a directory\n')
+        
 
     # The interactive level
     if not options.interactive in range(0, 4):
@@ -86,7 +101,7 @@ directory.""",
 
         if confirm:
             # Confirmed for this file, execute deletion
-            copy_file(directory, elem, destination, options.verbose)
+            copy_file(directory, elem, destination, options.verbose, options.recursive)
         elif options.interactive == 1:
             # In interactive == 1, just list the files and confirm at the end
             collected_results.append(elem)
@@ -110,12 +125,12 @@ directory.""",
 
             if confirm:
                 for elem in collected_results:
-                    copy_file(directory, elem, destination, options.verbose)
+                    copy_file(directory, elem, destination, options.verbose, options.recursive)
         else:
             stdout.write('No files to copy\n')
 
                 
-def copy_file(directory, name, destination, verbose = False):
+def copy_file(directory, name, destination, verbose = False, recursive = False):
     """
     Try to copy a specified file or directory
 
@@ -129,7 +144,10 @@ def copy_file(directory, name, destination, verbose = False):
         if not os.path.isdir(target_path):
             os.makedirs(target_path)
         if os.path.isdir(full_name):
-            shutil.copytree(full_name, target_full_name)
+            if recursive:
+                shutil.copytree(full_name, target_full_name)
+            else:
+                return
         else:
             shutil.copyfile(full_name, target_full_name)
         if verbose:

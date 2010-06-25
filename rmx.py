@@ -6,7 +6,7 @@
 # Author: Horea Haitonic
 #
 
-import sys, globx, optparse, os
+import sys, globx, optparse, os, shutil
 from sys import stdout, stderr, stdin
 
 
@@ -25,6 +25,10 @@ directory.""",
                       default = None,
                       metavar = 'level',
                       help = 'interactively confirm deletion (level=0..3)')
+    parser.add_option('-r', '--recursive',
+                      action = 'store_true', dest = 'recursive',
+                      default = False,
+                      help = 'also delete directories (default if ** is used)')
     parser.add_option('-v', '--verbose',
                       action = 'store_true', dest = 'verbose',
                       default = False,
@@ -36,9 +40,19 @@ directory.""",
         parser.error('You must specify the files to delete')
     (directory, pattern) = globx.split_target(args[0])
 
+    # Automatically enable recursive mode if needed
+    if globx.is_recursive(pattern):
+        options.recursive = True
+        if options.verbose:
+            stdout.write('>> Auto enabled recursive copy due to a recursive glob\n')
+    elif not globx.is_glob(pattern) and os.path.isdir(directory + '\\' + pattern):
+        options.recursive = True
+        if options.verbose:
+            stdout.write('>> Auto enabled recursive deletion since the target is a directory\n')
+
     # The interactive level
     if options.interactive == None:
-        if pattern.find('**') >= 0:
+        if options.recursive:
             options.interactive = 3
         else:
             options.interactive = 0
@@ -86,7 +100,7 @@ directory.""",
 
         if confirm:
             # Confirmed for this file, execute deletion
-            remove_file(directory, elem, options.verbose)
+            remove_file(directory, elem, options.verbose, options.recursive)
         elif options.interactive == 1:
             # In interactive == 1, just list the files and confirm at the end
             collected_results.append(elem)
@@ -107,7 +121,6 @@ directory.""",
                         confirm = True
                     elif read[0].upper() == 'N':
                         confirm = False
-
             if confirm:
                 for elem in collected_results:
                     remove_file(directory, elem, options.verbose)
@@ -115,7 +128,7 @@ directory.""",
             stdout.write('No files to delete\n')
 
                 
-def remove_file(directory, name, verbose = False):
+def remove_file(directory, name, verbose = False, recursive = False):
     """
     Try to delete a specified file or directory
 
@@ -125,7 +138,11 @@ def remove_file(directory, name, verbose = False):
     full_name = directory + '\\' + name
     try:
         if os.path.isdir(full_name):
-            os.rmdir(full_name)
+            if recursive:
+                shutil.rmtree(full_name)
+            else:
+                stdout.write('>> Omitting directory "' + full_name + '"\n')
+                return
         else:
             os.remove(full_name)
         if verbose:
