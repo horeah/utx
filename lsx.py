@@ -41,6 +41,9 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
         pattern = '**\\*'
     else:
         (directory, pattern) = globx.split_target(args[0])
+        if directory == '':
+            directory = '.'
+
     if not globx.is_glob(pattern) and os.path.isdir(directory + '\\' + pattern):
         directory += '\\' + pattern
         pattern = '**\\*'

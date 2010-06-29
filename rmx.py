@@ -39,6 +39,9 @@ directory.""",
     if len(args) == 0:
         parser.error('You must specify the files to delete')
     (directory, pattern) = globx.split_target(args[0])
+    if directory == '':
+        directory = '.'
+
 
     # Automatically enable recursive mode if needed
     if globx.is_recursive(pattern):
