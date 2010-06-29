@@ -101,7 +101,8 @@ directory.""",
 
         if confirm:
             # Confirmed for this file, execute deletion
-            copy_file(directory, elem, destination, options.verbose, options.recursive)
+            copy_file(directory, elem, destination, 
+                      options.verbose, options.recursive)
         elif options.interactive == 1:
             # In interactive == 1, just list the files and confirm at the end
             collected_results.append(elem)
@@ -125,12 +126,15 @@ directory.""",
 
             if confirm:
                 for elem in collected_results:
-                    copy_file(directory, elem, destination, options.verbose, options.recursive)
+                    copy_file(directory, elem, destination, 
+                              options.verbose, options.recursive)
         else:
             stdout.write('No files to copy\n')
 
                 
-def copy_file(directory, name, destination, verbose = False, recursive = False):
+def copy_file(directory, name, destination, 
+              verbose = False, recursive = False, 
+              already_copied = []):
     """
     Try to copy a specified file or directory
 
@@ -143,15 +147,26 @@ def copy_file(directory, name, destination, verbose = False, recursive = False):
         (target_path, target_base) = os.path.split(target_full_name)
         if not os.path.isdir(target_path):
             os.makedirs(target_path)
+
         if os.path.isdir(full_name):
             if recursive:
-                shutil.copytree(full_name, target_full_name)
+                for f in os.listdir(full_name):
+                    copy_file(full_name, f, target_full_name, 
+                              False, recursive, 
+                              already_copied)
             else:
                 return
         else:
-            shutil.copyfile(full_name, target_full_name)
+            if not full_name in already_copied:
+                # We avoid copying the same file repeatedly -- this can happen
+                # when copying **\* due to directories matching both the ** and
+                # the *.
+                shutil.copyfile(full_name, target_full_name)
+                already_copied.append(full_name)
+
         if verbose:
             stdout.write('>> Copied "' + name + '"\n')
+
     except OSError, e:
         stderr.write('  ' + str(e) + '\n')
     
