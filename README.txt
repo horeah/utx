@@ -29,6 +29,11 @@ utx is a package of command line tools for Windows, meant as an improvement over
  b. Fetch the Python sources from the repository at
            git://utx.git.sourceforge.net/gitroot/utx
     Run 'make' to create the standalone executables.
+    You will need:
+        - Python 2.5 from
+                 http://www.python.org/download/releases/2.5/
+        - py2exe from 
+                 http://www.py2exe.org/
 
 
 
