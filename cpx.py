@@ -38,8 +38,8 @@ directory.""",
     # The files argument
     if len(args) <= 1:
         parser.error('You must specify both the source and the destination')
-    (directory, pattern) = globx.split_target(args[0])
-    destination = args[1]
+    (directory, pattern) = globx.split_target(args[0].replace('/', '\\'))
+    destination = args[1].replace('/', '\\')
     if not os.path.isdir(destination):
         stderr.write(sys.argv[0] + ': error: the <destination> has to be an existing directory\n')
         sys.exit(1)

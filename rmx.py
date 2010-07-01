@@ -38,7 +38,7 @@ directory.""",
     # The files argument
     if len(args) == 0:
         parser.error('You must specify the files to delete')
-    (directory, pattern) = globx.split_target(args[0])
+    (directory, pattern) = globx.split_target(args[0].replace('/', '\\'))
     if directory == '':
         directory = '.'
 

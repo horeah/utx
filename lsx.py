@@ -40,7 +40,8 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
         directory = '.'
         pattern = '**\\*'
     else:
-        (directory, pattern) = globx.split_target(args[0])
+        target = args[0].replace('/', '\\')
+        (directory, pattern) = globx.split_target(target)
         if directory == '':
             directory = '.'
 
