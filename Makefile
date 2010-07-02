@@ -3,6 +3,7 @@
 #
 # Requires:
 # 	* MinGW in the path (rm, cp, make etc.)
+#	* zip in the path
 #	* Python 2.5 with py2exe installed
 #
 # Author: Horea Haitonic
@@ -16,6 +17,8 @@ SRC = globx.py lsx.py rmx.py
 
 dist_single: $(SRC)
 	python setup.py py2exe
+	$(RM) utx.zip
+	cd dist && $(ZIP) utx.zip lsx.exe cpx.exe rmx.exe
 
 .PHONY: clean
 clean:
