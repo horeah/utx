@@ -7,8 +7,8 @@
 #
 
 import sys, globx, optparse, os, shutil
-from sys import stdout, stderr, stdin
-
+from sys import stdout, stderr
+from actions import apply_confirm
 
 def main():
     # Define and parse command line otions 
@@ -35,10 +35,14 @@ directory.""",
                       help = 'describe the operations being performed')
     (options, args) = parser.parse_args()
 
-    # The files argument
+    # The source argument
     if len(args) <= 1:
         parser.error('You must specify both the source and the destination')
     (directory, pattern) = globx.split_target(args[0].replace('/', '\\'))
+    if directory == '':
+        directory = '.'
+
+    # The destination argument
     destination = args[1].replace('/', '\\')
     if not os.path.isdir(destination):
         stderr.write(sys.argv[0] + ': error: the <destination> has to be an existing directory\n')
@@ -63,73 +67,16 @@ directory.""",
         print '>> Copying "' + pattern + '" based at "' + directory + '"'
         print '>>      To "' + destination + '"'
 
+    # Expand pattern and copy results
     results = globx.globx(directory, pattern)
-    abort = False
-    confirm_initial = None
-    collected_results = []
-    for elem in results:
-        if options.interactive == 0:
-            confirm = True
-        elif options.interactive == 1:
-            confirm = False
-        else:    # options.interactive > 1
-            confirm = confirm_initial
-            while confirm == None :
-                stdout.write('Copy "' + elem + '"? [')
-                if options.interactive == 2:
-                    stdout.write('Y/n')
-                else:   # options.interactive == 3
-                    stdout.write('y/N')
-                stdout.write('/a(ll)/q(uit)]: ')
-
-                read = stdin.readline()
-                if len(read) == 1:
-                    confirm = options.interactive == 2
-                elif len(read) == 2:
-                    if read[0].upper() == 'Y':
-                        confirm = True
-                    elif read[0].upper() == 'N':
-                        confirm = False
-                    elif read[0].upper() == 'A':
-                        confirm = True
-                        confirm_initial = True
-                    elif read[0].upper() == 'Q':
-                        abort = True
-                        break
-            if abort:
-                break
-
-        if confirm:
-            # Confirmed for this file, execute deletion
-            copy_file(directory, elem, destination, 
-                      options.verbose, options.recursive)
-        elif options.interactive == 1:
-            # In interactive == 1, just list the files and confirm at the end
-            collected_results.append(elem)
-            stdout.write(elem + '\n')
-    
-
-    if options.interactive == 1:
-        # Confirmation at the end
-        if len(collected_results) > 0:
-            confirm = None
-            while confirm == None :
-                stdout.write('Copy ' + str(len(collected_results)) + ' files? [y/N]: ')
-                read = stdin.readline()
-                if len(read) == 1:
-                    confirm = False
-                elif len(read) == 2:
-                    if read[0].upper() == 'Y':
-                        confirm = True
-                    elif read[0].upper() == 'N':
-                        confirm = False
-
-            if confirm:
-                for elem in collected_results:
-                    copy_file(directory, elem, destination, 
-                              options.verbose, options.recursive)
-        else:
-            stdout.write('No files to copy\n')
+    apply_confirm(results, 
+                  'copy', 
+                  lambda elem: copy_file(directory, 
+                                         elem, 
+                                         destination, 
+                                         options.verbose, 
+                                         options.recursive),
+                  options.interactive)
 
                 
 def copy_file(directory, name, destination, 

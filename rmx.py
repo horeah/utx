@@ -7,7 +7,8 @@
 #
 
 import sys, globx, optparse, os, shutil
-from sys import stdout, stderr, stdin
+from sys import stdout, stderr
+from actions import apply_confirm
 
 
 def main():
@@ -66,69 +67,13 @@ directory.""",
         print '>> Deleting "' + pattern + '" based at "' + directory + '":'
 
     results = globx.globx(directory, pattern)
-    abort = False
-    confirm_initial = None
-    collected_results = []
-    for elem in results:
-        if options.interactive == 0:
-            confirm = True
-        elif options.interactive == 1:
-            confirm = False
-        else:    # options.interactive > 1
-            confirm = confirm_initial
-            while confirm == None :
-                stdout.write('Delete "' + elem + '"? [')
-                if options.interactive == 2:
-                    stdout.write('Y/n')
-                else:   # options.interactive == 3
-                    stdout.write('y/N')
-                stdout.write('/a(ll)/q(uit)]: ')
-
-                read = stdin.readline()
-                if len(read) == 1:
-                    confirm = options.interactive == 2
-                elif len(read) == 2:
-                    if read[0].upper() == 'Y':
-                        confirm = True
-                    elif read[0].upper() == 'N':
-                        confirm = False
-                    elif read[0].upper() == 'A':
-                        confirm = True
-                        confirm_initial = True
-                    elif read[0].upper() == 'Q':
-                        abort = True
-                        break
-            if abort:
-                break
-
-        if confirm:
-            # Confirmed for this file, execute deletion
-            remove_file(directory, elem, options.verbose, options.recursive)
-        elif options.interactive == 1:
-            # In interactive == 1, just list the files and confirm at the end
-            collected_results.append(elem)
-            stdout.write(elem + '\n')
-    
-
-    if options.interactive == 1:
-        # Confirmation at the end
-        if len(collected_results) > 0:
-            confirm = None
-            while confirm == None :
-                stdout.write('Delete ' + str(len(collected_results)) + ' files? [y/N]: ')
-                read = stdin.readline()
-                if len(read) == 1:
-                    confirm = False
-                elif len(read) == 2:
-                    if read[0].upper() == 'Y':
-                        confirm = True
-                    elif read[0].upper() == 'N':
-                        confirm = False
-            if confirm:
-                for elem in collected_results:
-                    remove_file(directory, elem, options.verbose)
-        else:
-            stdout.write('No files to delete\n')
+    apply_confirm(results,
+                  'delete',
+                  lambda elem: remove_file(directory, 
+                                           elem,
+                                           options.verbose,
+                                           options.recursive),
+                  options.interactive)
 
                 
 def remove_file(directory, name, verbose = False, recursive = False):
