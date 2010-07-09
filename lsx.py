@@ -7,7 +7,7 @@
 # Author: Horea Haitonic
 #
 
-import sys, globx, optparse, os
+import sys, globx, util, optparse, os
 from sys import stdout
 
 
@@ -60,7 +60,7 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
         if options.long_format:
             # Size
             try:
-                size_str = globx.format_size(os.path.getsize(directory + '\\' + elem), options.pretty_print)
+                size_str = util.format_size(os.path.getsize(directory + '\\' + elem), options.pretty_print)
             except os.error:
                 size_str = '??'
             stdout.write(' ' * (col_width - len(size_str)))
@@ -69,7 +69,7 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
             
             # Modification time
             try:
-                mtime_str = globx.format_time(os.path.getmtime(directory + '\\' + elem), options.pretty_print)
+                mtime_str = util.format_time(os.path.getmtime(directory + '\\' + elem), options.pretty_print)
             except os.error:
                 mtime_str = '??'
             stdout.write(' ' * (col_width - len(mtime_str)))
