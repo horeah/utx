@@ -44,6 +44,33 @@ def matches(name, pattern):
         return fnmatch.fnmatch(name, pattern)
 
 
+def matches_path(path, pattern, recursive = False):
+    """
+    Check if a file path matches a pattern.
+
+    As opposed to matches(), this works for entire paths instead of simple
+    filenames. Also, recursive wildcards are taken into account.
+    
+    If the recursive flag is set, all files and subfolders of a matched
+    directory are also matched (even if a **\* is not given)
+    """
+    if pattern == '':
+        return recursive or path == ''
+    elif path == '':
+        return pattern == ''
+
+    (path_elem, _, path_rest) = path.partition('\\')
+    (pattern_elem, _, pattern_rest) = pattern.partition('\\')
+
+    if pattern_elem == '**':
+        return matches_path(path_rest, pattern_rest, recursive) \
+            or matches_path(path, pattern_rest, recursive) \
+            or matches_path(path_rest, pattern, recursive)
+    else:
+        return matches(path_elem, pattern_elem) \
+            and matches_path(path_rest, pattern_rest, recursive)
+
+
 def split_target(arg):
     """
     Split a string argument into a directory part and a pattern part.

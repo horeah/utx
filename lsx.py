@@ -20,6 +20,14 @@ You can use the well-known '*' and '?' as expected, '**' to recursively
 match subdirectories and a '\\\\' (double backslash) to mark the base
 directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
                                    version = '0.1')
+    parser.add_option('-x', '--exclude', 
+                      action = 'append', type='string', dest = 'exclude_list', 
+                      default = [],
+                      help = 'exclude files matching pattern')
+    parser.add_option('-X', '--exclude-recursive', 
+                      action = 'append', type='string', dest = 'exclude_list_recursive', 
+                      default = [],
+                      help = 'exclude files matching pattern')
     parser.add_option('-l', '--long', 
                       action = 'store_true', dest = 'long_format', 
                       default = False,
@@ -51,12 +59,29 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
     
     if options.verbose:
         print '>> Listing "' + pattern + '" based at "' + directory + '":'
+        for exclude in options.exclude_list:
+            print '>>   Excluding "' + exclude + '"'
 
     col_width = 12      # Size of a display column
     col_spacing = 4     # Spacing b/w columns
 
     results = globx.globx(directory, pattern)
     for elem in results:
+        excluded = False
+        for exclude in options.exclude_list:
+            if globx.matches_path(elem, exclude):
+                excluded = True
+                break
+        if not excluded:
+            for exclude in options.exclude_list_recursive:
+                if globx.matches_path(elem, exclude, True):
+                    excluded = True
+                    break
+        if excluded:
+            if options.verbose:
+                print '>> Excluding "' + elem + '"'
+            continue
+
         if options.long_format:
             # Size
             try:
