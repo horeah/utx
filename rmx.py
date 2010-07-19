@@ -6,7 +6,7 @@
 # Author: Horea Haitonic
 #
 
-import sys, globx, optparse, os, shutil
+import sys, globx, optparse, os, shutil, itertools
 from sys import stdout, stderr
 from actions import apply_confirm
 
@@ -21,6 +21,16 @@ match subdirectories and a '\\\\' (double backslash) to mark the base
 directory.""",
 
                                    version = '0.1')
+    parser.add_option('-x', '--exclude', 
+                      action = 'append', type='string', dest = 'exclude_list', 
+                      metavar = 'PATTERN',
+                      default = [],
+                      help = 'exclude files matching pattern')
+    parser.add_option('-X', '--exclude-ending', 
+                      action = 'append', type='string', dest = 'exclude_list_ending', 
+                      metavar = 'PATTERN',
+                      default = [],
+                      help = 'exclude files ending in pattern')
     parser.add_option('-i', '--interactive', 
                       action = 'store', type = 'int', dest = 'interactive', 
                       default = None,
@@ -67,7 +77,13 @@ directory.""",
         print '>> Deleting "' + pattern + '" based at "' + directory + '":'
 
     results = globx.globx(directory, pattern)
-    apply_confirm(results,
+    filtered_results = itertools.ifilter(
+        lambda x: 
+        [e for e in options.exclude_list if globx.matches_path(x, e)] == [] and \
+        [e for e in options.exclude_list_ending if globx.matches_path(x, e, True)] == [],
+        results)
+
+    apply_confirm(filtered_results,
                   'delete',
                   lambda elem: remove_file(directory, 
                                            elem,

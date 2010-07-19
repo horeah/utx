@@ -7,7 +7,7 @@
 # Author: Horea Haitonic
 #
 
-import sys, globx, util, optparse, os
+import sys, globx, util, optparse, os, itertools
 from sys import stdout
 
 
@@ -22,12 +22,14 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
                                    version = '0.1')
     parser.add_option('-x', '--exclude', 
                       action = 'append', type='string', dest = 'exclude_list', 
+                      metavar = 'PATTERN',
                       default = [],
                       help = 'exclude files matching pattern')
-    parser.add_option('-X', '--exclude-recursive', 
-                      action = 'append', type='string', dest = 'exclude_list_recursive', 
+    parser.add_option('-X', '--exclude-ending', 
+                      action = 'append', type='string', dest = 'exclude_list_ending', 
+                      metavar = 'PATTERN',
                       default = [],
-                      help = 'exclude files matching pattern')
+                      help = 'exclude files ending in pattern')
     parser.add_option('-l', '--long', 
                       action = 'store_true', dest = 'long_format', 
                       default = False,
@@ -60,28 +62,21 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
     if options.verbose:
         print '>> Listing "' + pattern + '" based at "' + directory + '":'
         for exclude in options.exclude_list:
-            print '>>   Excluding "' + exclude + '"'
+            print '>>   Excluding entries matching "' + exclude + '"'
+        for exclude in options.exclude_list_ending:
+            print '>>   Excluding entries ending in "' + exclude + '"'
 
     col_width = 12      # Size of a display column
     col_spacing = 4     # Spacing b/w columns
 
     results = globx.globx(directory, pattern)
-    for elem in results:
-        excluded = False
-        for exclude in options.exclude_list:
-            if globx.matches_path(elem, exclude):
-                excluded = True
-                break
-        if not excluded:
-            for exclude in options.exclude_list_recursive:
-                if globx.matches_path(elem, exclude, True):
-                    excluded = True
-                    break
-        if excluded:
-            if options.verbose:
-                print '>> Excluding "' + elem + '"'
-            continue
+    filtered_results = itertools.ifilter(
+        lambda x: 
+        [e for e in options.exclude_list if globx.matches_path(x, e)] == [] and \
+        [e for e in options.exclude_list_ending if globx.matches_path(x, e, True)] == [],
+        results)
 
+    for elem in filtered_results:
         if options.long_format:
             # Size
             try:

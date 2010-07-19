@@ -5,6 +5,8 @@ def apply_confirm(items, action_name, action, interactive):
     Confirm and apply a given action to the specified items
     
     - items contains the target elemens (on which the action is to be applied)
+    - exclude_list contains a list of pattern to exclude
+    - exclude_list_recursive contains a list of pattern to recursively exclude
     - action_name is used when displaying confirmation messages
     - action is a function with one argument, defining the actual action to
       apply for each element
