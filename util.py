@@ -2,6 +2,8 @@
 Miscellaneous utility functions
 """
 
+import time
+
 def format_size(bytes, pretty = False):
     """
     Format an int size (in bytes) into a string.
