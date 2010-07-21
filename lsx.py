@@ -7,11 +7,14 @@
 # Author: Horea Haitonic
 #
 
-import sys, globx, util, optparse, os, itertools
+import sys, globx, util, optparse, os, itertools, signal
 from sys import stdout
 
 
 def main():
+    # Prevent stacktraces on Ctrl-C
+    signal.signal(signal.SIGINT, util.exit_on_ctrl_c)
+
     # Define and parse command line otions 
     parser = optparse.OptionParser(usage = 'lsx [options] <pattern>',
                                    description = 

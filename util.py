@@ -2,7 +2,7 @@
 Miscellaneous utility functions
 """
 
-import time
+import sys, time, signal
 
 def format_size(bytes, pretty = False):
     """
@@ -35,3 +35,12 @@ def format_time(seconds, pretty = False):
         return time.strftime(format, time.localtime(seconds))
     else:
         return str(int(seconds))
+
+
+def exit_on_ctrl_c(signum, frame):
+    """
+    Signal handler that catches SIGINT and terminates the program
+    """
+    if signum == signal.SIGINT:
+        print '^C'
+        sys.exit(1)

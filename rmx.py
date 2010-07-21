@@ -6,12 +6,15 @@
 # Author: Horea Haitonic
 #
 
-import sys, globx, optparse, os, shutil, itertools
+import sys, globx, util, optparse, os, shutil, itertools, signal
 from sys import stdout, stderr
 from actions import apply_confirm
 
 
 def main():
+    # Prevent stacktraces on Ctrl-C
+    signal.signal(signal.SIGINT, util.exit_on_ctrl_c)
+
     # Define and parse command line otions 
     parser = optparse.OptionParser(usage = 'rmx [options] <files>',
                                    description = 
