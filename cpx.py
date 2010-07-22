@@ -7,7 +7,7 @@
 #
 
 import sys, globx, optparse, os, shutil, itertools, signal, util
-from sys import stdout, stderr
+from sys import stdout, stderr, stdin
 from actions import apply_confirm
 
 def main():
@@ -42,11 +42,19 @@ directory.""",
                       action = 'store_true', dest = 'recursive',
                       default = False,
                       help = 'also copy directories (default if ** is used)')
+    parser.add_option('-c', '--create',
+                      action = 'store_true', dest = 'create_destination',
+                      default = False,
+                      help = 'create destination directory if missing')
     parser.add_option('-v', '--verbose',
                       action = 'store_true', dest = 'verbose',
                       default = False,
                       help = 'describe the operations being performed')
     (options, args) = parser.parse_args()
+
+    # The interactive level
+    if not options.interactive in range(0, 4):
+        parser.error('The interactive level has to be in [0..3]')
 
     # The source argument
     if len(args) <= 1:
@@ -58,8 +66,33 @@ directory.""",
     # The destination argument
     destination = args[1].replace('/', '\\')
     if not os.path.isdir(destination):
-        stderr.write(sys.argv[0] + ': error: the <destination> has to be an existing directory\n')
-        sys.exit(1)
+        if options.interactive > 0:
+            confirm = None
+        else:
+            confirm = options.create_destination
+
+        while confirm == None:
+            stdout.write('>> Destination "' 
+                         + destination 
+                         + '" missing. Create? [Y/n]')
+            read = stdin.readline()
+            if len(read) == 1:
+                confirm = True
+            elif len(read) == 2:
+                if read[0].upper() == 'Y':
+                    confirm = True
+                elif read[0].upper() == 'N':
+                    confirm = False
+        if confirm:
+            # Confirmed, create directory
+            try:
+                os.mkdir(destination);
+            except OSError, e:
+                stderr.write('  ' + str(e) + '\n')
+                sys.exit(3)
+        else:
+            stderr.write(sys.argv[0] + ': error: the <destination> has to be an existing directory\n')
+            sys.exit(1)
 
     # Automatically enable recursive mode if needed
     if globx.is_recursive(pattern):
@@ -71,10 +104,6 @@ directory.""",
         if options.verbose:
             stdout.write('>> Auto enabled recursive copy since the source is a directory\n')
         
-
-    # The interactive level
-    if not options.interactive in range(0, 4):
-        parser.error('The interactive level has to be in [0..3]')
 
     if options.verbose:
         print '>> Copying "' + pattern + '" based at "' + directory + '"'
