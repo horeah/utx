@@ -92,7 +92,7 @@ def split_target(arg):
         if wildcard_idx >= 0:
             # Wildcard found
             directory = os.path.dirname(arg[:wildcard_idx])
-            pattern = arg[wildcard_idx:]
+            pattern = os.path.basename(arg[:wildcard_idx]) + arg[wildcard_idx:]
         else:
             # No wildcard found
             (directory, pattern) = os.path.split(arg)
