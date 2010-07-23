@@ -6,7 +6,7 @@
 # Author: Horea Haitonic
 #
 
-import sys, globx, optparse, os, shutil, itertools, signal, util
+import sys, globx, optparse, os, shutil, itertools, signal, util, threading
 from sys import stdout, stderr, stdin
 from actions import apply_confirm
 
@@ -152,15 +152,27 @@ def copy_file(directory, name, destination,
             else:
                 return
         else:
+            # We avoid copying the same file repeatedly -- this can happen
+            # when copying **\* due to directories matching both the ** and
+            # the *.
             if not full_name in already_copied:
-                # We avoid copying the same file repeatedly -- this can happen
-                # when copying **\* due to directories matching both the ** and
-                # the *.
-                shutil.copyfile(full_name, target_full_name)
+                source_size = float(os.path.getsize(full_name))
+                worker = threading.Thread(group=None,
+                                          target = shutil.copyfile,
+                                          name='copy-file',
+                                          args = (full_name, target_full_name))
+                worker.setDaemon(True)  # So that we can exit on Ctrl-C
+                worker.start()
+                while worker.isAlive():
+                    if verbose and stdout.isatty() and os.path.exists(target_full_name):
+                        destination_size = os.path.getsize(target_full_name)
+                        percent = 100 * destination_size / source_size
+                        if percent < 100:
+                            stdout.write('\r%8.2f%% "%s"' % (percent, name))
+                    worker.join(0.2)
+                if verbose:
+                    stdout.write('\r>> Copied "' + name + '"\n')
                 already_copied.append(full_name)
-
-        if verbose:
-            stdout.write('>> Copied "' + name + '"\n')
 
     except OSError, e:
         stderr.write('  ' + str(e) + '\n')
