@@ -1,22 +1,25 @@
 1. Introduction
 ---------------
-utx is a package of command line tools for Windows, meant as an improvement over the standard Windows command line tools (copy, del, move, xcopy) and the MinGW ports of the unix tools (ls, cp, rm).
+utx is a package of command line tools for Windows, meant as an improvement over
+the standard Windows command line tools (copy, del, move, xcopy) and the MinGW
+ports of the UNIX tools (ls, cp, rm).
 
 
 2. Features
 -----------
  - Recursive wildcards (ant-style)
+ - Exclude files based on pattern
+ - Progress report for individual files
  - Selectable level of interactivity (0..3)
  - Verbose flag
 
 
 3. Missing features
 -------------------
- - exclude pattern
- - multiple source/target arguments
- - confirm file overwriting, read-only files etc.
- - force mode
- - colors
+ - Multiple source/target arguments
+ - Confirm file overwriting, read-only files etc.
+ - Force mode
+ - Colors
 
 
 4. Download/build/installation

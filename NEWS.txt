@@ -1,0 +1,7 @@
+What's new in utx 0.2?
+
+ * Exclude patterns with -x or -X
+ * Exit nicely on ^C
+ * [cpx] report progress for individual files
+ * [cpx] create destination directory if missing
+ * Fixed bug in the implicit (directory, pattern) computation
