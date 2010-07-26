@@ -13,7 +13,7 @@ CP = cp
 MV = mv
 ZIP = zip
 
-SRC = globx.py lsx.py rmx.py
+SRC = globx.py lsx.py rmx.py actions.py util.py
 
 dist_single: $(SRC)
 	python setup.py py2exe
