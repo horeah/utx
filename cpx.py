@@ -6,7 +6,8 @@
 # Author: Horea Haitonic
 #
 
-import sys, globx, optparse, os, shutil, itertools, signal, util, threading
+import sys, globx, optparse, os, shutil, itertools, signal, threading
+import util, console
 from sys import stdout, stderr, stdin
 from actions import apply_confirm
 
@@ -167,10 +168,11 @@ def copy_file(directory, name, destination,
                         destination_size = os.path.getsize(target_full_name)
                         percent = 100 * destination_size / source_size
                         if percent < 100:
-                            stdout.write('\r%8.2f%% "%s"' % (percent, name))
+                            stdout.write('%8.2f%% "%s"' % (percent, name))
+                            console.cursor_backward(12 + len(name))
                     worker.join(0.2)
                 if verbose:
-                    stdout.write('\r>> Copied "' + name + '"\n')
+                    stdout.write('>> Copied "' + name + '"\n')
                 already_copied.append(full_name)
 
     except OSError, e:
