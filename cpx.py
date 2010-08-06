@@ -9,7 +9,7 @@
 import sys, globx, optparse, os, shutil, itertools, signal, threading
 import util, console
 from sys import stdout, stderr, stdin
-from actions import apply_confirm
+from actions import ConfirmedAction
 
 def main():
     # Prevent stacktraces on Ctrl-C
@@ -109,7 +109,7 @@ directory.""",
         print '>> Copying "' + pattern + '" based at "' + directory + '"'
         print '>>      To "' + destination + '"'
 
-    # Expand pattern and copy results
+    # Expand pattern and filter 
     results = globx.globx(directory, pattern)
     filtered_results = itertools.ifilter(
         lambda x: 
@@ -117,68 +117,79 @@ directory.""",
         [e for e in options.exclude_list_ending if globx.matches_path(x, e, True)] == [],
         results)
 
-    apply_confirm(filtered_results, 
-                  'copy', 
-                  lambda elem: copy_file(directory, 
-                                         elem, 
-                                         destination, 
-                                         options.verbose, 
-                                         options.recursive),
-                  options.interactive)
+    # Create the copy action and run it
+    copy_action = ConfirmedCopy()
+    copy_action.directory = directory
+    copy_action.destination = destination
+    copy_action.verbose = options.verbose
+    copy_action.recursive = options.recursive
+    copy_action.interactive = options.interactive
+    copy_action.apply_confirm(filtered_results)
 
-                
-def copy_file(directory, name, destination, 
-              verbose = False, recursive = False, 
-              already_copied = []):
-    """
-    Try to copy a specified file or directory
 
-    Report any error; report what's being done if the verbose flag is 
-    True
-    """
-    full_name = directory + '\\' + name
-    target_full_name = destination + '\\' + name
-    try:
-        (target_path, target_base) = os.path.split(target_full_name)
-        if not os.path.isdir(target_path):
-            os.makedirs(target_path)
+class ConfirmedCopy(ConfirmedAction):
+    directory = '.'
 
-        if os.path.isdir(full_name):
-            if recursive:
-                for f in os.listdir(full_name):
-                    copy_file(full_name, f, target_full_name, 
-                              False, recursive, 
-                              already_copied)
+    destination = '.'
+
+    verbose = False
+
+    recursive = False
+
+    def ask_one(self, elem):
+        return 'Copy "' + elem + '"?'
+
+    def ask_all(self, items):
+        return 'Copy ' + str(len(items)) + ' files?'
+
+    def no_items(self):
+        return 'No files to copy'
+
+    def action(self, name):
+        full_name = self.directory + '\\' + name
+        target_full_name = self.destination + '\\' + name
+        already_copied = []
+        try:
+            (target_path, target_base) = os.path.split(target_full_name)
+            if not os.path.isdir(target_path):
+                os.makedirs(target_path)
+
+            if os.path.isdir(full_name):
+                if recursive:
+                    for f in os.listdir(full_name):
+                        copy_file(full_name, f, target_full_name, 
+                                  False, recursive, 
+                                  already_copied)
+                else:
+                    return
             else:
-                return
-        else:
-            # We avoid copying the same file repeatedly -- this can happen
-            # when copying **\* due to directories matching both the ** and
-            # the *.
-            if not full_name in already_copied:
-                source_size = float(os.path.getsize(full_name))
-                worker = threading.Thread(group=None,
-                                          target = shutil.copyfile,
-                                          name='copy-file',
-                                          args = (full_name, target_full_name))
-                worker.setDaemon(True)  # So that we can exit on Ctrl-C
-                worker.start()
-                while worker.isAlive():
-                    if verbose and stdout.isatty() and os.path.exists(target_full_name):
-                        destination_size = os.path.getsize(target_full_name)
-                        percent = 100 * destination_size / source_size
-                        if percent < 100:
-                            stdout.write('%8.2f%% "%s"' % (percent, name))
-                            console.cursor_backward(12 + len(name))
-                    worker.join(0.2)
-                if verbose:
-                    stdout.write('>> Copied "' + name + '"\n')
-                already_copied.append(full_name)
+                # We avoid copying the same file repeatedly -- this can happen
+                # when copying **\* due to directories matching both the ** and
+                # the *.
+                if not full_name in already_copied:
+                    source_size = float(os.path.getsize(full_name))
+                    worker = threading.Thread(group=None,
+                                              target = shutil.copyfile,
+                                              name='copy-file',
+                                              args = (full_name, target_full_name))
+                    worker.setDaemon(True)  # So that we can exit on Ctrl-C
+                    worker.start()
+                    while worker.isAlive():
+                        if self.verbose and stdout.isatty() and os.path.exists(target_full_name):
+                            destination_size = os.path.getsize(target_full_name)
+                            percent = 100 * destination_size / source_size
+                            if percent < 100:
+                                stdout.write('%8.2f%% "%s"' % (percent, name))
+                                console.cursor_backward(12 + len(name))
+                        worker.join(0.2)
+                    if self.verbose:
+                        stdout.write('>> Copied "' + name + '"\n')
+                    already_copied.append(full_name)
 
-    except OSError, e:
-        stderr.write('  ' + str(e) + '\n')
-    except IOError, e:
-        stderr.write('  ' + str(e) + '\n')
+        except OSError, e:
+            stderr.write('  ' + str(e) + '\n')
+        except IOError, e:
+            stderr.write('  ' + str(e) + '\n')
 
 
 if __name__ == '__main__':

@@ -8,7 +8,7 @@
 
 import sys, globx, util, optparse, os, shutil, itertools, signal
 from sys import stdout, stderr
-from actions import apply_confirm
+from actions import ConfirmedAction
 
 
 def main():
@@ -85,38 +85,42 @@ directory.""",
         [e for e in options.exclude_list_ending if globx.matches_path(x, e, True)] == [],
         results)
 
-    apply_confirm(filtered_results,
-                  'delete',
-                  lambda elem: remove_file(directory, 
-                                           elem,
-                                           options.verbose,
-                                           options.recursive),
-                  options.interactive)
+    remove_action = ConfirmedRemove()
+    remove_action.directory = directory
+    remove_action.verbose = options.verbose
+    remove_action.interactive = options.interactive
+    remove_action.recursive = options.recursive
+    remove_action.apply_confirm(filtered_results)
 
-                
-def remove_file(directory, name, verbose = False, recursive = False):
-    """
-    Try to delete a specified file or directory
 
-    Report any error; report what's being done if the verbose flag is 
-    True
-    """
-    full_name = directory + '\\' + name
-    try:
-        if os.path.isdir(full_name):
-            if recursive:
-                shutil.rmtree(full_name)
+class ConfirmedRemove(ConfirmedAction):
+    directory = '.'
+
+    def ask_one(self, name):
+        return 'Delete "' + name + '"?'
+
+    def ask_all(self, items):
+        return 'Delete "' + str(len(items)) + '?'
+
+    def no_items(self):
+        return 'No items to delete'
+
+    def action(self, name):
+        full_name = self.directory + '\\' + name
+        try:
+            if os.path.isdir(full_name):
+                if self.recursive:
+                    shutil.rmtree(full_name)
+                else:
+                    stdout.write('   Omitting directory "' + full_name + '"\n')
+                    return
             else:
-                stdout.write('>> Omitting directory "' + full_name + '"\n')
-                return
-        else:
-            os.remove(full_name)
-        if verbose:
-            stdout.write('>> Deleted "' + name + '"\n')
-    except OSError, e:
-        stderr.write('  ' + str(e) + '\n')
-    
-
+                os.remove(full_name)
+            if self.verbose:
+                stdout.write('   Deleted "' + name + '"\n')
+        except OSError, e:
+            stderr.write('  ' + str(e) + '\n')
+                    
 
 if __name__ == '__main__':
     main()
