@@ -146,9 +146,13 @@ class ConfirmedCopy(ConfirmedAction):
         return 'No files to copy'
 
     def action(self, name):
-        full_name = self.directory + '\\' + name
-        target_full_name = self.destination + '\\' + name
+        self._copy(self.directory, name, self.destination, self.verbose, self.recursive)
+
+    def _copy(self, directory, name, destination, verbose, recursive):
+        """Utility function that recursively copies files and directories"""
         already_copied = []
+        full_name = directory + '\\' + name
+        target_full_name = destination + '\\' + name
         try:
             (target_path, target_base) = os.path.split(target_full_name)
             if not os.path.isdir(target_path):
@@ -157,9 +161,7 @@ class ConfirmedCopy(ConfirmedAction):
             if os.path.isdir(full_name):
                 if recursive:
                     for f in os.listdir(full_name):
-                        copy_file(full_name, f, target_full_name, 
-                                  False, recursive, 
-                                  already_copied)
+                        self._copy(full_name, f, target_full_name, False, True)
                 else:
                     return
             else:
@@ -175,14 +177,14 @@ class ConfirmedCopy(ConfirmedAction):
                     worker.setDaemon(True)  # So that we can exit on Ctrl-C
                     worker.start()
                     while worker.isAlive():
-                        if self.verbose and stdout.isatty() and os.path.exists(target_full_name):
+                        if verbose and stdout.isatty() and os.path.exists(target_full_name):
                             destination_size = os.path.getsize(target_full_name)
                             percent = 100 * destination_size / source_size
                             if percent < 100:
                                 stdout.write('%8.2f%% "%s"' % (percent, name))
                                 console.cursor_backward(12 + len(name))
                         worker.join(0.2)
-                    if self.verbose:
+                    if verbose:
                         stdout.write('>> Copied "' + name + '"\n')
                     already_copied.append(full_name)
 
@@ -190,7 +192,6 @@ class ConfirmedCopy(ConfirmedAction):
             stderr.write('  ' + str(e) + '\n')
         except IOError, e:
             stderr.write('  ' + str(e) + '\n')
-
 
 if __name__ == '__main__':
     main()
