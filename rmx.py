@@ -94,9 +94,15 @@ directory.""",
 
 
 class ConfirmedRemove(ConfirmedAction):
+    """
+    Implements a confirmed file-deletion based on the ConfirmedAction
+    class.
+    """
     directory = '.'
 
     def ask_one(self, name):
+        if (os.path.isdir(self.directory + '\\' + name)):
+            name += '\\'
         return 'Delete "' + name + '"?'
 
     def ask_all(self, items):

@@ -128,6 +128,10 @@ directory.""",
 
 
 class ConfirmedCopy(ConfirmedAction):
+    """
+    Implements a confirmed file copy action based on the ConfirmedAction
+    classs
+    """
     directory = '.'
 
     destination = '.'
@@ -136,8 +140,10 @@ class ConfirmedCopy(ConfirmedAction):
 
     recursive = False
 
-    def ask_one(self, elem):
-        return 'Copy "' + elem + '"?'
+    def ask_one(self, name):
+        if (os.path.isdir(self.directory + '\\' + name)):
+            name += '\\'
+        return 'Copy "' + name + '"?'
 
     def ask_all(self, items):
         return 'Copy ' + str(len(items)) + ' files?'

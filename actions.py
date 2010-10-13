@@ -24,9 +24,9 @@ class ConfirmedAction(object):
         return 'No items to process'
 
 
-    def action(self, elem):
+    def action(self, name):
         """The actual action that is to be applied for each item"""
-        stdout.write('Processing "' + elem + '"\n')
+        stdout.write('Processing "' + name + '"\n')
 
 
     def apply_confirm(self, items):
