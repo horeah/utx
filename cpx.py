@@ -185,7 +185,11 @@ class ConfirmedCopy(ConfirmedAction):
                     while worker.isAlive():
                         if verbose and stdout.isatty() and os.path.exists(target_full_name):
                             destination_size = os.path.getsize(target_full_name)
-                            percent = 100 * destination_size / source_size
+                            if destination_size > 0:
+                                percent = 100 * destination_size / source_size
+                            else:
+                                # Special treatment for zero-sized files
+                                percent = 100
                             if percent < 100:
                                 stdout.write('%8.2f%% "%s"' % (percent, name))
                                 console.cursor_backward(12 + len(name))
