@@ -1,6 +1,7 @@
 # leading `/' means at top level only
 /build/
 /dist
+/.idea
 
 # no leading `/' means anywhere
 *.pyc
