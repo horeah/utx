@@ -51,46 +51,47 @@ directory.""",
     # The files argument
     if len(args) == 0:
         parser.error('You must specify the files to delete')
-    (directory, pattern) = globx.split_target(args[0].replace('/', '\\'))
-    if directory == '':
-        directory = '.'
 
+    for arg in args:
+        (directory, pattern) = globx.split_target(arg.replace('/', '\\'))
+        if directory == '':
+            directory = '.'
 
-    # Automatically enable recursive mode if needed
-    if globx.is_recursive(pattern):
-        options.recursive = True
+        # Automatically enable recursive mode if needed
+        if globx.is_recursive(pattern):
+            options.recursive = True
+            if options.verbose:
+                stdout.write('>> Auto enabled recursive copy due to a recursive glob\n')
+        elif not globx.is_glob(pattern) and os.path.isdir(directory + '\\' + pattern):
+            options.recursive = True
+            if options.verbose:
+                stdout.write('>> Auto enabled recursive deletion since the target is a directory\n')
+
+        # The interactive level
+        if options.interactive == None:
+            if options.recursive:
+                options.interactive = 3
+            else:
+                options.interactive = 0
+        if not options.interactive in range(0, 4):
+            parser.error('The interactive level has to be in [0..3]')
+
         if options.verbose:
-            stdout.write('>> Auto enabled recursive copy due to a recursive glob\n')
-    elif not globx.is_glob(pattern) and os.path.isdir(directory + '\\' + pattern):
-        options.recursive = True
-        if options.verbose:
-            stdout.write('>> Auto enabled recursive deletion since the target is a directory\n')
+            print '>> Deleting "' + pattern + '" based at "' + directory + '":'
 
-    # The interactive level
-    if options.interactive == None:
-        if options.recursive:
-            options.interactive = 3
-        else:
-            options.interactive = 0
-    if not options.interactive in range(0, 4):
-        parser.error('The interactive level has to be in [0..3]')
+        results = globx.globx(directory, pattern)
+        filtered_results = itertools.ifilter(
+            lambda x:
+            [e for e in options.exclude_list if globx.matches_path(x, e)] == [] and \
+            [e for e in options.exclude_list_ending if globx.matches_path(x, e, True)] == [],
+            results)
 
-    if options.verbose:
-        print '>> Deleting "' + pattern + '" based at "' + directory + '":'
-
-    results = globx.globx(directory, pattern)
-    filtered_results = itertools.ifilter(
-        lambda x: 
-        [e for e in options.exclude_list if globx.matches_path(x, e)] == [] and \
-        [e for e in options.exclude_list_ending if globx.matches_path(x, e, True)] == [],
-        results)
-
-    remove_action = ConfirmedRemove()
-    remove_action.directory = directory
-    remove_action.verbose = options.verbose
-    remove_action.interactive = options.interactive
-    remove_action.recursive = options.recursive
-    remove_action.apply_confirm(filtered_results)
+        remove_action = ConfirmedRemove()
+        remove_action.directory = directory
+        remove_action.verbose = options.verbose
+        remove_action.interactive = options.interactive
+        remove_action.recursive = options.recursive
+        remove_action.apply_confirm(filtered_results)
 
 
 class ConfirmedRemove(ConfirmedAction):
