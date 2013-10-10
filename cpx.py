@@ -59,12 +59,9 @@ directory.""",
     # The source argument
     if len(args) <= 1:
         parser.error('You must specify both the source and the destination')
-    (directory, pattern) = globx.split_target(args[0].replace('/', '\\'))
-    if directory == '':
-        directory = '.'
 
     # The destination argument
-    destination = args[1].replace('/', '\\')
+    destination = args[-1].replace('/', '\\')
     if not os.path.isdir(destination):
         if options.interactive > 0:
             confirm = None
@@ -94,37 +91,42 @@ directory.""",
             stderr.write(sys.argv[0] + ': error: the <destination> has to be an existing directory\n')
             sys.exit(1)
 
-    # Automatically enable recursive mode if needed
-    if globx.is_recursive(pattern):
-        options.recursive = True
+    for arg in args[:-1]:
+        (directory, pattern) = globx.split_target(arg.replace('/', '\\'))
+        if directory == '':
+            directory = '.'
+
+        # Automatically enable recursive mode if needed
+        if globx.is_recursive(pattern):
+            options.recursive = True
+            if options.verbose:
+                stdout.write('>> Auto enabled recursive copy due to a recursive glob\n')
+        elif not globx.is_glob(pattern) and os.path.isdir(directory + '\\' + pattern):
+            options.recursive = True
+            if options.verbose:
+                stdout.write('>> Auto enabled recursive copy since the source is a directory\n')
+
+
         if options.verbose:
-            stdout.write('>> Auto enabled recursive copy due to a recursive glob\n')
-    elif not globx.is_glob(pattern) and os.path.isdir(directory + '\\' + pattern):
-        options.recursive = True
-        if options.verbose:
-            stdout.write('>> Auto enabled recursive copy since the source is a directory\n')
-        
+            print '>> Copying "' + pattern + '" based at "' + directory + '"'
+            print '>>      To "' + destination + '"'
 
-    if options.verbose:
-        print '>> Copying "' + pattern + '" based at "' + directory + '"'
-        print '>>      To "' + destination + '"'
+        # Expand pattern and filter 
+        results = globx.globx(directory, pattern)
+        filtered_results = itertools.ifilter(
+            lambda x: 
+            [e for e in options.exclude_list if globx.matches_path(x, e)] == [] and \
+            [e for e in options.exclude_list_ending if globx.matches_path(x, e, True)] == [],
+            results)
 
-    # Expand pattern and filter 
-    results = globx.globx(directory, pattern)
-    filtered_results = itertools.ifilter(
-        lambda x: 
-        [e for e in options.exclude_list if globx.matches_path(x, e)] == [] and \
-        [e for e in options.exclude_list_ending if globx.matches_path(x, e, True)] == [],
-        results)
-
-    # Create the copy action and run it
-    copy_action = ConfirmedCopy()
-    copy_action.directory = directory
-    copy_action.destination = destination
-    copy_action.verbose = options.verbose
-    copy_action.recursive = options.recursive
-    copy_action.interactive = options.interactive
-    copy_action.apply_confirm(filtered_results)
+        # Create the copy action and run it
+        copy_action = ConfirmedCopy()
+        copy_action.directory = directory
+        copy_action.destination = destination
+        copy_action.verbose = options.verbose
+        copy_action.recursive = options.recursive
+        copy_action.interactive = options.interactive
+        copy_action.apply_confirm(filtered_results)
 
 
 class ConfirmedCopy(ConfirmedAction):
