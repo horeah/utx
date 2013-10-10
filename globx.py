@@ -14,7 +14,12 @@ def globx(directory, pattern):
         return
         
     (elem, _, rest) = pattern.partition('\\')
-    files = os.listdir(directory)
+    try:
+        files = os.listdir(directory)
+    except WindowsError, e:
+        sys.stderr.write('  ' + str(e) + '\n')
+        return
+
     if elem == '**':
         for f in files:
             if os.path.isdir(directory + '\\' + f):
