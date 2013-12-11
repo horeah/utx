@@ -42,6 +42,10 @@ directory.""",
                       action = 'store_true', dest = 'recursive',
                       default = False,
                       help = 'also copy directories (default if ** is used)')
+    parser.add_option('-u', '--update',
+                      action = 'store_true', dest = 'update',
+                      default = False,
+                      help = 'copy only when destination is older or missing')
     parser.add_option('-c', '--create',
                       action = 'store_true', dest = 'create_destination',
                       default = False,
@@ -126,6 +130,7 @@ directory.""",
         copy_action.verbose = options.verbose
         copy_action.recursive = options.recursive
         copy_action.interactive = options.interactive
+        copy_action.update = options.update
         copy_action.apply_confirm(filtered_results)
 
 
@@ -142,6 +147,8 @@ class ConfirmedCopy(ConfirmedAction):
 
     recursive = False
 
+    update = False
+
     def ask_one(self, name):
         if (os.path.isdir(self.directory + '\\' + name)):
             name += '\\'
@@ -154,9 +161,9 @@ class ConfirmedCopy(ConfirmedAction):
         return 'No files to copy'
 
     def action(self, name):
-        self._copy(self.directory, name, self.destination, self.verbose, self.recursive)
+        self._copy(self.directory, name, self.destination, self.verbose, self.recursive, self.update)
 
-    def _copy(self, directory, name, destination, verbose, recursive):
+    def _copy(self, directory, name, destination, verbose, recursive, update):
         """Utility function that recursively copies files and directories"""
         already_copied = []
         full_name = directory + '\\' + name
@@ -169,7 +176,7 @@ class ConfirmedCopy(ConfirmedAction):
             if os.path.isdir(full_name):
                 if recursive:
                     for f in os.listdir(full_name):
-                        self._copy(full_name, f, target_full_name, False, True)
+                        self._copy(full_name, f, target_full_name, verbose, True, update)
                 else:
                     return
             else:
@@ -177,6 +184,13 @@ class ConfirmedCopy(ConfirmedAction):
                 # when copying **\* due to directories matching both the ** and
                 # the *.
                 if not full_name in already_copied:
+                    if update and os.path.isfile(target_full_name):
+                        if os.path.getmtime(target_full_name) > os.path.getmtime(full_name):
+                            # Destination is newer than source, skip this file
+                            if verbose:
+                                stdout.write('>> Skipped "' + name + '"\n')
+                            return
+
                     source_size = float(os.path.getsize(full_name))
                     worker = threading.Thread(group=None,
                                               target = shutil.copyfile,
