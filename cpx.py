@@ -131,7 +131,11 @@ directory.""",
         copy_action.recursive = options.recursive
         copy_action.interactive = options.interactive
         copy_action.update = options.update
-        copy_action.apply_confirm(filtered_results)
+        try:
+            copy_action.apply_confirm(filtered_results)
+        except Exception, e:
+            stderr.write('  ' + str(e) + '\n')
+            sys.exit(1)
 
 
 class ConfirmedCopy(ConfirmedAction):
@@ -168,56 +172,61 @@ class ConfirmedCopy(ConfirmedAction):
         already_copied = []
         full_name = directory + '\\' + name
         target_full_name = destination + '\\' + name
-        try:
-            (target_path, target_base) = os.path.split(target_full_name)
-            if not os.path.isdir(target_path):
-                os.makedirs(target_path)
+        (target_path, target_base) = os.path.split(target_full_name)
+        if not os.path.isdir(target_path):
+            os.makedirs(target_path)
 
-            if os.path.isdir(full_name):
-                if recursive:
-                    for f in os.listdir(full_name):
-                        self._copy(full_name, f, target_full_name, verbose, True, update)
-                else:
-                    return
+        if os.path.isdir(full_name):
+            if recursive:
+                for f in os.listdir(full_name):
+                    self._copy(full_name, f, target_full_name, verbose, True, update)
             else:
-                # We avoid copying the same file repeatedly -- this can happen
-                # when copying **\* due to directories matching both the ** and
-                # the *.
-                if not full_name in already_copied:
-                    if update and os.path.isfile(target_full_name):
-                        if os.path.getmtime(target_full_name) > os.path.getmtime(full_name):
-                            # Destination is newer than source, skip this file
-                            if verbose:
-                                stdout.write('>> Skipped "' + name + '"\n')
-                            return
+                return
+        else:
+            # We avoid copying the same file repeatedly -- this can happen
+            # when copying **\* due to directories matching both the ** and
+            # the *.
+            if not full_name in already_copied:
+                if update and os.path.isfile(target_full_name):
+                    if os.path.getmtime(target_full_name) > os.path.getmtime(full_name):
+                        # Destination is newer than source, skip this file
+                        if verbose:
+                            stdout.write('>> Skipped "' + name + '"\n')
+                        return
 
-                    source_size = float(os.path.getsize(full_name))
-                    worker = threading.Thread(group=None,
-                                              target = shutil.copyfile,
-                                              name='copy-file',
-                                              args = (full_name, target_full_name))
-                    worker.setDaemon(True)  # So that we can exit on Ctrl-C
-                    worker.start()
-                    while worker.isAlive():
-                        if verbose and stdout.isatty() and os.path.exists(target_full_name):
-                            destination_size = os.path.getsize(target_full_name)
-                            if destination_size > 0:
-                                percent = 100 * destination_size / source_size
-                            else:
-                                # Special treatment for zero-sized files
-                                percent = 100
-                            if percent < 100:
-                                stdout.write('%8.2f%% "%s"' % (percent, name))
-                                console.cursor_backward(12 + len(name))
-                        worker.join(0.2)
-                    if verbose:
-                        stdout.write('>> Copied "' + name + '"\n')
-                    already_copied.append(full_name)
+                source_size = float(os.path.getsize(full_name))
+                self._failure = None
+                def copyfile_wrapper(full_name, target_full_name):
+                    try:
+                        shutil.copyfile(full_name, target_full_name)
+                    except Exception, e:
+                        self._failure = e
 
-        except OSError, e:
-            stderr.write('  ' + str(e) + '\n')
-        except IOError, e:
-            stderr.write('  ' + str(e) + '\n')
+                worker = threading.Thread(group=None,
+                                          target = copyfile_wrapper,
+                                          name='copy-file',
+                                          args = (full_name, target_full_name))
+                worker.setDaemon(True)  # So that we can exit on Ctrl-C
+                worker.start()
+                while worker.isAlive():
+                    if verbose and stdout.isatty() and os.path.exists(target_full_name):
+                        destination_size = os.path.getsize(target_full_name)
+                        if destination_size > 0:
+                            percent = 100 * destination_size / source_size
+                        else:
+                            # Special treatment for zero-sized files
+                            percent = 100
+                        if percent < 100:
+                            stdout.write('%8.2f%% "%s"' % (percent, name))
+                            console.cursor_backward(12 + len(name))
+                    worker.join(0.2)
+
+                if self._failure:  # Propagate exception from thread
+                    raise self._failure
+                if verbose:
+                    stdout.write('>> Copied "' + name + '"\n')
+                already_copied.append(full_name)                    
+
 
 if __name__ == '__main__':
     main()

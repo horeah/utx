@@ -91,7 +91,11 @@ directory.""",
         remove_action.verbose = options.verbose
         remove_action.interactive = options.interactive
         remove_action.recursive = options.recursive
-        remove_action.apply_confirm(filtered_results)
+        try:
+            remove_action.apply_confirm(filtered_results)
+        except Exception, e:
+            stderr.write('  ' + str(e) + '\n')
+            sys.exit(1)
 
 
 class ConfirmedRemove(ConfirmedAction):
@@ -114,19 +118,16 @@ class ConfirmedRemove(ConfirmedAction):
 
     def action(self, name):
         full_name = self.directory + '\\' + name
-        try:
-            if os.path.isdir(full_name):
-                if self.recursive:
-                    shutil.rmtree(full_name)
-                else:
-                    stdout.write('   Omitting directory "' + full_name + '"\n')
-                    return
+        if os.path.isdir(full_name):
+            if self.recursive:
+                shutil.rmtree(full_name)
             else:
-                os.remove(full_name)
-            if self.verbose:
-                stdout.write('   Deleted "' + name + '"\n')
-        except OSError, e:
-            stderr.write('  ' + str(e) + '\n')
+                stdout.write('   Omitting directory "' + full_name + '"\n')
+                return
+        else:
+            os.remove(full_name)
+        if self.verbose:
+            stdout.write('   Deleted "' + name + '"\n')
                     
 
 if __name__ == '__main__':
