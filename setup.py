@@ -30,6 +30,7 @@ setup(
             'script': 'cpx.py',
         }
     ],
-    options = {'py2exe': { 'bundle_files' : 1 }},
+    options = {'py2exe': { 'bundle_files' : 1,
+                           'dll_excludes': [ "mswsock.dll", "powrprof.dll" ]}},
     zipfile = None
 )

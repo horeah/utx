@@ -6,8 +6,8 @@
 # Author: Horea Haitonic
 #
 
-import sys, globx, optparse, os, shutil, itertools, signal, threading
-import util, console
+import sys, optparse, os, shutil, itertools, signal, threading, win32file
+import globx, util, console
 from sys import stdout, stderr, stdin
 from actions import ConfirmedAction
 
@@ -29,7 +29,7 @@ directory.""",
                       default = [],
                       help = 'exclude files matching pattern')
     parser.add_option('-X', '--exclude-ending', 
-                      action = 'append', type='string', dest = 'exclude_list_ending', 
+                      action = 'append', type='string', dest = 'exclude_list_ending',
                       metavar = 'PATTERN',
                       default = [],
                       help = 'exclude files ending in pattern')
@@ -198,7 +198,7 @@ class ConfirmedCopy(ConfirmedAction):
                 self._failure = None
                 def copyfile_wrapper(full_name, target_full_name):
                     try:
-                        shutil.copyfile(full_name, target_full_name)
+                        win32file.CopyFile(full_name, target_full_name, False)
                     except Exception, e:
                         self._failure = e
 
