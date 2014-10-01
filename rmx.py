@@ -42,6 +42,9 @@ directory.""",
                       action = 'store_true', dest = 'recursive',
                       default = False,
                       help = 'also delete directories (default if ** is used)')
+    parser.add_option('-m', '--require-match', choices = ('1', '0'),
+                      metavar = 'MATCH_REQUIRED',
+                      help = 'require (1) or not (0) at least one file/dir to match')
     parser.add_option('-v', '--verbose',
                       action = 'store_true', dest = 'verbose',
                       default = False,
@@ -78,6 +81,15 @@ directory.""",
 
         if options.verbose:
             print '>> Deleting "' + pattern + '" based at "' + directory + '":'
+
+        if options.require_match is '1':
+            check_any = globx.globx(directory, pattern)
+            try:
+                check_any.next()
+            except StopIteration, _:
+                sys.stderr.write('%s: error: "%s" did not match any file or directory\n'
+                                 % (sys.argv[0], pattern))
+                sys.exit(1)
 
         results = globx.globx(directory, pattern)
         filtered_results = itertools.ifilter(

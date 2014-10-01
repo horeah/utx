@@ -41,6 +41,9 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
                       action = 'store_true', dest = 'pretty_print',
                       default = False,
                       help = 'show details in human-readable format')
+    parser.add_option('-m', '--require-match', choices = ('1', '0'),
+                      metavar = 'MATCH_REQUIRED',
+                      help = 'require (1) or not (0) at least one file/dir to match')
     parser.add_option('-v', '--verbose',
                       action = 'store_true', dest = 'verbose',
                       default = False,
@@ -58,6 +61,9 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
         if directory == '':
             directory = '.'
 
+    if options.require_match is None and not globx.is_glob(pattern):
+        options.require_match = '1'
+
     if not globx.is_glob(pattern) and os.path.isdir(directory + '\\' + pattern):
         directory += '\\' + pattern
         pattern = '**\\*'
@@ -71,6 +77,15 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
 
     col_width = 12      # Size of a display column
     col_spacing = 4     # Spacing b/w columns
+
+    if options.require_match is '1':
+        check_any = globx.globx(directory, pattern)
+        try:
+            check_any.next()
+        except StopIteration, _:
+            sys.stderr.write('%s: error: "%s" did not match any file or directory\n'
+                             % (sys.argv[0], pattern))
+            sys.exit(1)
 
     results = globx.globx(directory, pattern)
     filtered_results = itertools.ifilter(

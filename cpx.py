@@ -42,6 +42,9 @@ directory.""",
                       action = 'store_true', dest = 'recursive',
                       default = False,
                       help = 'also copy directories (default if ** is used)')
+    parser.add_option('-m', '--require-match', choices = ('1', '0'),
+                      metavar = 'MATCH_REQUIRED',
+                      help = 'require (1) or not (0) at least one file/dir to match')
     parser.add_option('-u', '--update',
                       action = 'store_true', dest = 'update',
                       default = False,
@@ -110,12 +113,22 @@ directory.""",
             if options.verbose:
                 stdout.write('>> Auto enabled recursive copy since the source is a directory\n')
 
+        if options.require_match is None and not globx.is_glob(pattern):
+            options.require_match = '1'
 
         if options.verbose:
             print '>> Copying "' + pattern + '" based at "' + directory + '"'
             print '>>      To "' + destination + '"'
 
-        # Expand pattern and filter 
+        if options.require_match is '1':
+            check_any = globx.globx(directory, pattern)
+            try:
+                check_any.next()
+            except StopIteration, _:
+                sys.stderr.write('%s: error: "%s" did not match any file or directory\n'
+                                 % (sys.argv[0], pattern))
+                sys.exit(1)
+
         results = globx.globx(directory, pattern)
         filtered_results = itertools.ifilter(
             lambda x: 
