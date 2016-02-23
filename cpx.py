@@ -110,6 +110,7 @@ directory.""",
                 stdout.write('>> Auto enabled recursive copy due to a recursive glob\n')
         elif not globx.is_glob(pattern) and os.path.isdir(directory + '\\' + pattern):
             options.recursive = True
+            pattern += '\\**\\*'
             if options.verbose:
                 stdout.write('>> Auto enabled recursive copy since the source is a directory\n')
 
@@ -131,10 +132,15 @@ directory.""",
 
         results = globx.globx(directory, pattern)
         filtered_results = itertools.ifilter(
-            lambda x: 
+            lambda x:
             [e for e in options.exclude_list if globx.matches_path(x, e)] == [] and \
             [e for e in options.exclude_list_ending if globx.matches_path(x, e, True)] == [],
             results)
+        if options.recursive:
+            # for recursive copying we need to exclude directory names
+            filtered_results = itertools.ifilter(
+                lambda x: not os.path.isdir(os.path.join(directory, x)),
+                filtered_results)
 
         # Create the copy action and run it
         copy_action = ConfirmedCopy()
