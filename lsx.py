@@ -53,67 +53,67 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
     # Interpret the <files> argument
     if len(args) == 0:
         # No pattern given, use the implicit '.\\**\*'
-        directory = '.'
-        pattern = '**\\*'
-    else:
-        target = args[0].replace('/', '\\')
+        args = ['.\\**\\*']
+
+    for arg in args:
+        target = arg.replace('/', '\\')
         (directory, pattern) = globx.split_target(target)
         if directory == '':
             directory = '.'
 
-    if options.require_match is None and not globx.is_glob(pattern):
-        options.require_match = '1'
+        if options.require_match is None and not globx.is_glob(pattern):
+            options.require_match = '1'
 
-    if not globx.is_glob(pattern) and os.path.isdir(directory + '\\' + pattern):
-        directory += '\\' + pattern
-        pattern = '**\\*'
-    
-    if options.verbose:
-        print '>> Listing "' + pattern + '" based at "' + directory + '":'
-        for exclude in options.exclude_list:
-            print '>>   Excluding entries matching "' + exclude + '"'
-        for exclude in options.exclude_list_ending:
-            print '>>   Excluding entries ending in "' + exclude + '"'
+        if not globx.is_glob(pattern) and os.path.isdir(directory + '\\' + pattern):
+            directory += '\\' + pattern
+            pattern = '**\\*'
 
-    col_width = 12      # Size of a display column
-    col_spacing = 4     # Spacing b/w columns
+        if options.verbose:
+            print '>> Listing "' + pattern + '" based at "' + directory + '":'
+            for exclude in options.exclude_list:
+                print '>>   Excluding entries matching "' + exclude + '"'
+            for exclude in options.exclude_list_ending:
+                print '>>   Excluding entries ending in "' + exclude + '"'
 
-    if options.require_match is '1':
-        check_any = globx.globx(directory, pattern)
-        try:
-            check_any.next()
-        except StopIteration, _:
-            sys.stderr.write('%s: error: "%s" did not match any file or directory\n'
-                             % (sys.argv[0], pattern))
-            sys.exit(1)
+        col_width = 12      # Size of a display column
+        col_spacing = 4     # Spacing b/w columns
 
-    results = globx.globx(directory, pattern)
-    filtered_results = itertools.ifilter(
-        lambda x: 
-        [e for e in options.exclude_list if globx.matches_path(x, e)] == [] and \
-        [e for e in options.exclude_list_ending if globx.matches_path(x, e, True)] == [],
-        results)
-
-    for elem in filtered_results:
-        if options.long_format:
-            # Size
+        if options.require_match is '1':
+            check_any = globx.globx(directory, pattern)
             try:
-                size_str = util.format_size(os.path.getsize(directory + '\\' + elem), options.pretty_print)
-            except os.error:
-                size_str = '??'
-            stdout.write(' ' * (col_width - len(size_str)))
-            stdout.write(size_str)
-            stdout.write(' ' * col_spacing)
-            
-            # Modification time
-            try:
-                mtime_str = util.format_time(os.path.getmtime(directory + '\\' + elem), options.pretty_print)
-            except os.error:
-                mtime_str = '??'
-            stdout.write(' ' * (col_width - len(mtime_str)))
-            stdout.write(mtime_str)
-            stdout.write(' ' * col_spacing)
-        print elem
+                check_any.next()
+            except StopIteration, _:
+                sys.stderr.write('%s: error: "%s" did not match any file or directory\n'
+                                 % (sys.argv[0], pattern))
+                sys.exit(1)
+
+        results = globx.globx(directory, pattern)
+        filtered_results = itertools.ifilter(
+            lambda x: 
+            [e for e in options.exclude_list if globx.matches_path(x, e)] == [] and \
+            [e for e in options.exclude_list_ending if globx.matches_path(x, e, True)] == [],
+            results)
+
+        for elem in filtered_results:
+            if options.long_format:
+                # Size
+                try:
+                    size_str = util.format_size(os.path.getsize(directory + '\\' + elem), options.pretty_print)
+                except os.error:
+                    size_str = '??'
+                stdout.write(' ' * (col_width - len(size_str)))
+                stdout.write(size_str)
+                stdout.write(' ' * col_spacing)
+
+                # Modification time
+                try:
+                    mtime_str = util.format_time(os.path.getmtime(directory + '\\' + elem), options.pretty_print)
+                except os.error:
+                    mtime_str = '??'
+                stdout.write(' ' * (col_width - len(mtime_str)))
+                stdout.write(mtime_str)
+                stdout.write(' ' * col_spacing)
+            print elem
 
 
 # Entry point
