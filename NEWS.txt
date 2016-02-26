@@ -1,3 +1,13 @@
+What's new in utx 0.3?
+
+ * support multiple source arguments
+ * "-m" option to define reaction to "no match"
+ * return exit code on errors
+ * [cpx] much faster copying
+ * [cpx] "update" mode (similar to "cp -u")
+ * various fixes
+
+
 What's new in utx 0.2?
 
  * Exclude patterns with -x or -X

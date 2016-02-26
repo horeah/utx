@@ -11,12 +11,12 @@ ports of the UNIX tools (ls, cp, rm).
  - Exclude files based on pattern
  - Progress report for individual files
  - Selectable level of interactivity (0..3)
+ - Customizable behavior when no file matches
  - Verbose flag
 
 
 3. Missing features
 -------------------
- - Multiple source/target arguments
  - Confirm file overwriting, read-only files etc.
  - Force mode
  - Colors
