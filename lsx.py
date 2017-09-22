@@ -22,7 +22,7 @@ def main():
 You can use the well-known '*' and '?' as expected, '**' to recursively
 match subdirectories and a '\\\\' (double backslash) to mark the base
 directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
-                                   version = '0.2')
+                                   version = '0.3.1')
     parser.add_option('-x', '--exclude', 
                       action = 'append', type='string', dest = 'exclude_list', 
                       metavar = 'PATTERN',
