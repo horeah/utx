@@ -33,11 +33,9 @@ ports of the UNIX tools (ls, cp, rm).
            git://utx.git.sourceforge.net/gitroot/utx
     Run 'make' to create the standalone executables.
     You will need:
-        - Python 2.5 from
-                 http://www.python.org/download/releases/2.5/
+        - Python 2.7 from
         - py2exe from 
                  http://www.py2exe.org/
-
 
 
 ---------------------------------------------------
