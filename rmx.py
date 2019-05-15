@@ -55,6 +55,10 @@ directory.""",
     if len(args) == 0:
         parser.error('You must specify the files to delete')
 
+    # We accept both '/' and '\\' in exclusion lists
+    options.exclude_list = [e.replace('/', '\\') for e in options.exclude_list]
+    options.exclude_list_ending = [e.replace('/', '\\') for e in options.exclude_list_ending]
+
     for arg in args:
         (directory, pattern) = globx.split_target(arg.replace('/', '\\'))
         if directory == '':

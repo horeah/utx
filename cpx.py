@@ -67,6 +67,10 @@ directory.""",
     if len(args) <= 1:
         parser.error('You must specify both the source and the destination')
 
+    # We accept both '/' and '\\' in exclusion lists
+    options.exclude_list = [e.replace('/', '\\') for e in options.exclude_list]
+    options.exclude_list_ending = [e.replace('/', '\\') for e in options.exclude_list_ending]
+
     # The destination argument
     destination = args[-1].replace('/', '\\')
     if not os.path.isdir(destination):

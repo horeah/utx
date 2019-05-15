@@ -55,6 +55,10 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
         # No pattern given, use the implicit '.\\**\*'
         args = ['.\\**\\*']
 
+    # We accept both '/' and '\\' in exclusion lists
+    options.exclude_list = [e.replace('/', '\\') for e in options.exclude_list]
+    options.exclude_list_ending = [e.replace('/', '\\') for e in options.exclude_list_ending]
+
     for arg in args:
         target = arg.replace('/', '\\')
         (directory, pattern) = globx.split_target(target)
