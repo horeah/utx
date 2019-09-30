@@ -211,7 +211,7 @@ class ConfirmedCopy(ConfirmedAction):
             # the *.
             if not full_name in already_copied:
                 if update and os.path.isfile(target_full_name):
-                    if os.path.getmtime(target_full_name) > os.path.getmtime(full_name):
+                    if os.path.getmtime(target_full_name) >= os.path.getmtime(full_name):
                         # Destination is newer than source, skip this file
                         if verbose:
                             stdout.write('>> Skipped "' + name + '"\n')
