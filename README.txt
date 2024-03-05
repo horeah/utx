@@ -24,16 +24,17 @@ ports of the UNIX tools (ls, cp, rm).
 
 4. Download/build/installation
 ------------------------
- a. Download the binary distribution (created with pyinstaller) from:  
-          https://sourceforge.net/projects/utx/files/
+ a. Download the binary distribution (created with pyinstaller) from:
+          https://github.com/horeah/utx/releases
     No installation is necessary.
 
  b. Fetch the Python sources from the repository at
-           git://utx.git.sourceforge.net/gitroot/utx
+           https://github.com/horeah/utx.git
     Run 'make' to create the standalone executables.
     You will need:
         - Python 3.10+
         - pyinstaller
+        - MinGW
 
 
 ---------------------------------------------------
