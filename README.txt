@@ -24,8 +24,7 @@ ports of the UNIX tools (ls, cp, rm).
 
 4. Download/build/installation
 ------------------------
- a. Download the binary distribution (created with Py2Exe, see
-    http://www.py2exe.org/) from  
+ a. Download the binary distribution (created with pyinstaller) from:  
           https://sourceforge.net/projects/utx/files/
     No installation is necessary.
 
@@ -33,9 +32,8 @@ ports of the UNIX tools (ls, cp, rm).
            git://utx.git.sourceforge.net/gitroot/utx
     Run 'make' to create the standalone executables.
     You will need:
-        - Python 2.7 from
-        - py2exe from 
-                 http://www.py2exe.org/
+        - Python 3.10+
+        - pyinstaller
 
 
 ---------------------------------------------------

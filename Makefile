@@ -4,7 +4,7 @@
 # Requires:
 # 	* MinGW in the path (rm, cp, make etc.)
 #	* zip in the path
-#	* Python 2.7 with py2exe installed
+#	* Python >= 3.10 with the pyinstaller package
 #
 # Author: Horea Haitonic
 #
@@ -16,9 +16,10 @@ ZIP = zip
 SRC = globx.py lsx.py cpx.py rmx.py actions.py console.py util.py
 
 dist_single: $(SRC)
-	python setup.py py2exe
-	$(RM) utx.zip
-	cd dist && $(ZIP) utx.zip lsx.exe cpx.exe rmx.exe
+	$(PYTHONHOME)/scripts/pyinstaller.exe --onefile lsx.py
+	$(PYTHONHOME)/scripts/pyinstaller.exe --onefile cpx.py
+	$(PYTHONHOME)/scripts/pyinstaller.exe --onefile rmx.py
+	cd dist && $(RM) utx.zip && $(ZIP) utx.zip lsx.exe cpx.exe rmx.exe
 
 .PHONY: clean
 clean:

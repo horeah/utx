@@ -73,26 +73,26 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
             pattern = '**\\*'
 
         if options.verbose:
-            print '>> Listing "' + pattern + '" based at "' + directory + '":'
+            print('>> Listing "' + pattern + '" based at "' + directory + '":')
             for exclude in options.exclude_list:
-                print '>>   Excluding entries matching "' + exclude + '"'
+                print('>>   Excluding entries matching "' + exclude + '"')
             for exclude in options.exclude_list_ending:
-                print '>>   Excluding entries ending in "' + exclude + '"'
+                print('>>   Excluding entries ending in "' + exclude + '"')
 
         col_width = 12      # Size of a display column
         col_spacing = 4     # Spacing b/w columns
 
-        if options.require_match is '1':
+        if options.require_match == '1':
             check_any = globx.globx(directory, pattern)
             try:
                 check_any.next()
-            except StopIteration, _:
+            except StopIteration as _:
                 sys.stderr.write('%s: error: "%s" did not match any file or directory\n'
                                  % (sys.argv[0], pattern))
                 sys.exit(1)
 
         results = globx.globx(directory, pattern)
-        filtered_results = itertools.ifilter(
+        filtered_results = filter(
             lambda x: 
             [e for e in options.exclude_list if globx.matches_path(x, e)] == [] and \
             [e for e in options.exclude_list_ending if globx.matches_path(x, e, True)] == [],
@@ -117,7 +117,7 @@ directory. If no pattern is provided, '.\\\\**\\*' is implied.""",
                 stdout.write(' ' * (col_width - len(mtime_str)))
                 stdout.write(mtime_str)
                 stdout.write(' ' * col_spacing)
-            print elem
+            print(elem)
 
 
 # Entry point

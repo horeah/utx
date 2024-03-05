@@ -16,7 +16,7 @@ def globx(directory, pattern):
     (elem, _, rest) = pattern.partition('\\')
     try:
         files = os.listdir(directory)
-    except WindowsError, e:
+    except WindowsError as e:
         sys.stderr.write('  ' + str(e) + '\n')
         return
 

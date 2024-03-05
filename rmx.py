@@ -84,19 +84,19 @@ directory.""",
             parser.error('The interactive level has to be in [0..3]')
 
         if options.verbose:
-            print '>> Deleting "' + pattern + '" based at "' + directory + '":'
+            print('>> Deleting "' + pattern + '" based at "' + directory + '":')
 
-        if options.require_match is '1':
+        if options.require_match == '1':
             check_any = globx.globx(directory, pattern)
             try:
                 check_any.next()
-            except StopIteration, _:
+            except StopIteration as _:
                 sys.stderr.write('%s: error: "%s" did not match any file or directory\n'
                                  % (sys.argv[0], pattern))
                 sys.exit(1)
 
         results = globx.globx(directory, pattern)
-        filtered_results = itertools.ifilter(
+        filtered_results = filter(
             lambda x:
             [e for e in options.exclude_list if globx.matches_path(x, e)] == [] and \
             [e for e in options.exclude_list_ending if globx.matches_path(x, e, True)] == [],
@@ -109,7 +109,7 @@ directory.""",
         remove_action.recursive = options.recursive
         try:
             remove_action.apply_confirm(filtered_results)
-        except Exception, e:
+        except Exception as e:
             stderr.write('  ' + str(e) + '\n')
             sys.exit(1)
 

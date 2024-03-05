@@ -95,7 +95,7 @@ directory.""",
             # Confirmed, create directory
             try:
                 os.mkdir(destination);
-            except OSError, e:
+            except OSError as e:
                 stderr.write('  ' + str(e) + '\n')
                 sys.exit(3)
         else:
@@ -122,27 +122,27 @@ directory.""",
             options.require_match = '1'
 
         if options.verbose:
-            print '>> Copying "' + pattern + '" based at "' + directory + '"'
-            print '>>      To "' + destination + '"'
+            print('>> Copying "' + pattern + '" based at "' + directory + '"')
+            print('>>      To "' + destination + '"')
 
-        if options.require_match is '1':
+        if options.require_match == '1':
             check_any = globx.globx(directory, pattern)
             try:
                 check_any.next()
-            except StopIteration, _:
+            except StopIteration as _:
                 sys.stderr.write('%s: error: "%s" did not match any file or directory\n'
                                  % (sys.argv[0], pattern))
                 sys.exit(1)
 
         results = globx.globx(directory, pattern)
-        filtered_results = itertools.ifilter(
+        filtered_results = filter(
             lambda x:
             [e for e in options.exclude_list if globx.matches_path(x, e)] == [] and \
             [e for e in options.exclude_list_ending if globx.matches_path(x, e, True)] == [],
             results)
         if options.recursive:
             # for recursive copying we need to exclude directory names
-            filtered_results = itertools.ifilter(
+            filtered_results = filter(
                 lambda x: not os.path.isdir(os.path.join(directory, x)),
                 filtered_results)
 
@@ -156,7 +156,7 @@ directory.""",
         copy_action.update = options.update
         try:
             copy_action.apply_confirm(filtered_results)
-        except Exception, e:
+        except Exception as e:
             stderr.write('  ' + str(e) + '\n')
             sys.exit(1)
 
@@ -222,7 +222,7 @@ class ConfirmedCopy(ConfirmedAction):
                 def copyfile_wrapper(full_name, target_full_name):
                     try:
                         win32file.CopyFile(full_name, target_full_name, False)
-                    except Exception, e:
+                    except Exception as e:
                         self._failure = e
 
                 worker = threading.Thread(group=None,

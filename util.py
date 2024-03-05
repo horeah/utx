@@ -42,5 +42,5 @@ def exit_on_ctrl_c(signum, frame):
     Signal handler that catches SIGINT and terminates the program
     """
     if signum == signal.SIGINT:
-        print '^C'
+        print('^C')
         sys.exit(1)
