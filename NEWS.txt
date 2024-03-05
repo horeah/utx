@@ -1,3 +1,9 @@
+What's new in utx 0.4?
+
+ * migrated to Python3
+ * migrated from py2exe to pyinstaller
+
+
 What's new in utx 0.3?
 
  * support multiple source arguments
